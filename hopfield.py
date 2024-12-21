@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 
+from modeling import *
+
 
 # Hopfield神经网络类
 class HopfieldTSP(nn.Module):
@@ -39,7 +41,7 @@ class HopfieldTSP(nn.Module):
             x = x_new
         return x
 
-    def solve_tsp(self):
+    def distance_hopfield(self):
         """
         使用Hopfield神经网络解决TSP问题。
         返回最优路径和路径长度。
@@ -81,14 +83,3 @@ class HopfieldTSP(nn.Module):
         path_length = compute_path_length(path, self.adj_matrix)
 
         return path, path_length
-
-
-# 计算路径长度
-def compute_path_length(path, adj_matrix):
-    length = 0
-    for i in range(len(path) - 1):
-        length += adj_matrix[path[i], path[i + 1]]
-    length += adj_matrix[path[-1], path[0]]  # 回到起点的距离
-    return length
-
-

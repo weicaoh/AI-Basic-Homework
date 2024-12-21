@@ -1,10 +1,11 @@
 import itertools
-import numpy as np
+
 from tqdm import tqdm  # 导入tqdm
 
 from attraction_data import *  # 假设此模块定义了 adj_matrix
 
 
+# 针对路径规划的验证
 class TSPValidation:
     def __init__(self, adj_matrix):
         self.adj_matrix = np.array(adj_matrix)
@@ -38,7 +39,3 @@ class TSPValidation:
                 min_path = path
 
         return min_path, min_length
-
-
-path, length = TSPValidation(adj_matrix).find_shortest_path()
-print(f"Shortest path length: {length}")
