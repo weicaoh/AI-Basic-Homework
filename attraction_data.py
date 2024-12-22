@@ -4,7 +4,7 @@ import pandas as pd
 
 '''距离规划的数据处理部分'''
 # 读取excel文件(南京市旅游景点的邻接矩阵)
-file_distance = './attraction_distance.xlsx'
+file_distance = 'origin_data/attraction_distance.xlsx'
 df_distance = pd.read_excel(file_distance)
 
 # 读取邻接矩阵信息
@@ -19,11 +19,11 @@ attr_map = {i: df_attribute.iloc[i] for i in range(len(df_attribute))}
 
 '''时间规划的数据处理部分'''
 # 读取excel文件(南京市旅游景点之间打车/步行时间的邻接矩阵)
-file_time = './attraction_time.xlsx'
+file_time = 'origin_data/attraction_time.xlsx'
 df_time = pd.read_excel(file_time)
 
 # 读取excel文件(南京市旅游景点之间打车花销的邻接矩阵)
-file_cost = './attraction_cost.xlsx'
+file_cost = 'origin_data/attraction_cost.xlsx'
 df_cost = pd.read_excel(file_cost)
 
 # 读取邻接矩阵信息

@@ -9,21 +9,18 @@ def build_graph(adj_matrix):
 
     for i in range(n_cities):
         for j in range(i + 1, n_cities):
-            if adj_matrix[i, j] >= 0:
-                edge_index.append([i, j])
-                edge_index.append([j, i])
-                edge_attr.append(adj_matrix[i, j])
-                edge_attr.append(adj_matrix[i, j])
+            edge_index.append([i, j])
+            edge_index.append([j, i])
+            edge_attr.append(adj_matrix[i, j])
+            edge_attr.append(adj_matrix[i, j])
 
     edge_index = torch.tensor(edge_index, dtype=torch.long).t().contiguous()
     edge_attr = torch.tensor(edge_attr, dtype=torch.float32)
     return edge_index, edge_attr
 
 
+# 基于温度的概率选择策略(模拟退火方法)
 def probabilistic_search(prob_matrix, temperature=1.0):
-    """
-    基于温度的概率选择策略（模拟退火）,在不同情境下考虑不同的问题
-    """
     n_cities = prob_matrix.shape[0]
     visited = [False] * n_cities
     path = [0]  # 从第一个城市出发

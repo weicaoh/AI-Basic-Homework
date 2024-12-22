@@ -30,7 +30,7 @@ class TSPValidation:
         min_length = float('inf')
 
         # 使用tqdm显示进度条
-        for perm in tqdm(all_permutations, total=np.math.factorial(self.n_cities - 1), desc="Calculating paths"):
+        for perm in tqdm(all_permutations, total=np.math.factorial(self.n_cities - 1), desc="穷举法计算路径"):
             path = [0] + list(perm)  # 从第一个城市出发
             path_length = self.compute_path_length(path)
 

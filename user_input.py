@@ -5,8 +5,8 @@ from tkinter import messagebox
 from tkinter import ttk
 
 from TSP_GNN import *  # 图神经网络算法
-from attraction_data import *  # 已拥有 attr_map 和 adj_matrix 数据
 from hopfield import *
+from validation import *
 
 
 class TSPApp:
@@ -19,6 +19,7 @@ class TSPApp:
 
         # 用于存储用户选择的景点
         self.selected_attractions = []
+        self.first_selected = None  # 用来记录第一次点击的景点
 
         # 创建路径规划、时间规划的选择按钮
         self.instructions = tk.Label(root, text="规划目标选择：", font=("System", 10))
@@ -56,12 +57,17 @@ class TSPApp:
 
         # 创建成本参数选项(仅在时间规划下显示)
         self.cost_weight_label = tk.Label(root, text="成本参数(花费相对时间的权重):", font=("System", 10))
-        self.cost_weight_knob = ttk.Combobox(root, values=[0.1, 0.2, 0.5, 1, 2, 5, 10], state="readonly", width=10)
+        self.cost_weight_knob = ttk.Combobox(root, values=[0.001, 0.01, 0.1, 0.2, 0.5, 1, 2, 5, 10, 100, 1000],
+                                             state="readonly", width=10)
         self.cost_weight_knob.set(1)  # 设置默认值
 
-        # 提交按钮放置到按钮群的下方，增加一些间距
+        # 添加“一键清除”按钮
+        self.clear_button = tk.Button(root, text="一键清除", width=20, height=2, command=self.clear_selection)
+        self.clear_button.grid(row=6, column=2, columnspan=3, pady=10)
+
+        # 添加“提交“按钮
         self.submit_button = tk.Button(root, text="提交", width=20, height=2, command=self.submit_selection)
-        self.submit_button.grid(row=6, column=2, columnspan=3, pady=10)
+        self.submit_button.grid(row=6, column=4, columnspan=1, pady=10)
 
     def create_path_planning_layout(self, root):
         # 创建显示最佳路径的标签和文本框
@@ -92,8 +98,8 @@ class TSPApp:
         self.progress_bar = ttk.Progressbar(root, orient="horizontal", length=300, mode="indeterminate")
         self.progress_bar.grid_forget()  # 隐藏进度条，直到计算开始
 
+    # 通用布局设置
     def toggle_layout(self, layout_type):
-        """通用布局显示/隐藏函数"""
         # 先隐藏所有布局
         for widget in [self.best_path_label, self.best_path_text, self.best_distance_label, self.best_distance_text,
                        self.best_path_time_label, self.best_path_time_text, self.best_time_label, self.best_time_text,
@@ -143,15 +149,29 @@ class TSPApp:
 
     def toggle_selection(self, index):
         """点击按钮切换景点的选择状态"""
+        # 若第一次点击景点，设置成初始景点，显示不同颜色
         if index in self.selected_attractions:
             self.selected_attractions.remove(index)
             self.buttons[index].config(bg="SystemButtonFace")  # 恢复默认背景色
         else:
             self.selected_attractions.append(index)
-            self.buttons[index].config(bg="lightblue")  # 选中状态的背景色
+            if self.first_selected is None:
+                self.first_selected = index
+                self.buttons[index].config(bg="lightgreen")  # 初始景点的背景色为 lightgreen
+            else:
+                self.buttons[index].config(bg="lightblue")  # 非初始景点的背景色为 lightblue
+        # 如果没有景点被选择，重置第一次点击的按钮
+        if not self.selected_attractions:
+            self.reset_first_selected_button()
 
+    # 重置第一次点击的按钮
+    def reset_first_selected_button(self):
+        if self.first_selected is not None:
+            self.buttons[self.first_selected].config(bg="SystemButtonFace")  # 恢复默认背景色
+            self.first_selected = None  # 重置第一次点击的标记
+
+    # 提交选择的景点并计算子矩阵，注意这里对用户提交有限制
     def submit_selection(self):
-        """提交选择的景点并计算子矩阵，注意这里对用户提交有限制"""
         if len(self.selected_attractions) < 2:
             messagebox.showwarning("选择错误", "请至少选择两个景点！")
             return
@@ -164,10 +184,10 @@ class TSPApp:
             sub_adj_matrix = adj_matrix_distance[self.selected_attractions, :][:, self.selected_attractions]
             selected_names = [attr_map[i] for i in self.selected_attractions]
 
-            # 输出选中的景点及子邻接矩阵
-            print("您选择的景点是:", selected_names)
-            print("这些景点之间距离的邻接矩阵是:")
-            print(sub_adj_matrix)
+            # # 输出选中的景点及子邻接矩阵
+            # print("您选择的景点是:", selected_names)
+            # print("这些景点之间距离的邻接矩阵是:")
+            # print(sub_adj_matrix)
 
             # 显示进度条，开始加载
             self.progress_bar.grid(row=12, column=2, columnspan=3, pady=10)  # 显示进度条
@@ -175,6 +195,11 @@ class TSPApp:
 
             # 创建并启动一个后台线程来执行GNN和Hopfield计算
             threading.Thread(target=self.distance_run_both_models, args=(sub_adj_matrix, selected_indices)).start()
+
+            # """注意:这里的验证部分仅用于实验,不对用户开放;在进行实验时,将下面的取消注释"""
+            # # 额外的后台线程，利用穷举法执行路径规划验证，结果不对用户界面显示
+            # threading.Thread(target=self.verify_tsp_solution, args=(sub_adj_matrix, selected_indices)).start()
+
 
         # 时间规划调用算法求解
         elif self.time_cost_planning_button['relief'] == 'sunken':
@@ -201,6 +226,16 @@ class TSPApp:
             # 创建并启动一个后台线程执行GNN计算
             threading.Thread(target=self.time_cost_run_model,
                              args=(sub_time_matrix, sub_cost_matrix, cost_weight, selected_indices)).start()
+
+    # 清除所有已选择的景点
+    def clear_selection(self):
+        # 清空已选择景点列表
+        self.selected_attractions = []
+        self.first_selected = None  # 重置第一次点击的景点
+
+        # 重置所有按钮的背景颜色为默认状态
+        for button in self.buttons.values():
+            button.config(bg="SystemButtonFace")
 
     # 调用GNN和Hopfield神经网络计算路径规划
     def distance_run_both_models(self, sub_adj_matrix, selected_indices):
@@ -284,3 +319,21 @@ class TSPApp:
 
         # 隐藏进度条
         self.progress_bar.grid_forget()
+
+    # 利用穷举法进行局部验证,这里仅对路径规划验证(不对用户开放,在与用户启动页面时关闭)
+    def verify_tsp_solution(self, sub_adj_matrix, selected_indices):
+        try:
+            # 使用TSPValidation来验证结果
+            tsp_validator = TSPValidation(sub_adj_matrix)
+
+            # 在后台计算最短路径，并输出结果到终端
+            min_path, min_length = tsp_validator.find_shortest_path()
+
+            # 输出验证结果到终端（不显示在用户界面）
+            min_path_names = [attr_map[i] for i in min_path]
+            path_str = " -> ".join(min_path_names)
+            print(f"穷举法验证结果: 最短路径为: {path_str}")
+            print(f"最短路径长度为: {min_length:.2f}")
+
+        except Exception as e:
+            print(f"验证过程出现错误: {e}")

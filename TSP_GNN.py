@@ -78,8 +78,9 @@ def time_cost_gnn(sub_time_matrix, sub_cost_matrix, cost_weight, epochs, lr=0.01
     # 初始化每个节点的特征，这里的特征维度是hidden_dim
     node_features = torch.eye(n_cities)  # 每个节点的特征是单位矩阵（每个城市的特征）
 
-    # 构建图的边信息
-    edge_index, edge_attr = build_graph(sub_time_matrix + cost_weight * sub_cost_matrix)
+    # 以时间和成本先验构建图的边信息
+    adjusted_edge_attr = sub_time_matrix + (cost_weight * sub_cost_matrix)
+    edge_index, edge_attr = build_graph(adjusted_edge_attr)
 
     best_path_total_cost = float('inf')  # 保存当前最优路径长度
     best_time = float('inf')  # 保存当前最优总时间
@@ -99,7 +100,11 @@ def time_cost_gnn(sub_time_matrix, sub_cost_matrix, cost_weight, epochs, lr=0.01
         # 计算路径的总时间和总花费
         total_time, total_cost = compute_time_cost(path, sub_time_matrix, sub_cost_matrix)
 
-        # 计算总的目标函数（时间 + 成本加权）
+        # 将total_time 和 total_cost 转换为torch.tensor
+        total_time = torch.tensor(total_time, dtype=torch.float32)
+        total_cost = torch.tensor(total_cost, dtype=torch.float32)
+
+        # 计算总的目标函数(规划时间+权重×规划成本)
         total_cost_time = total_time + cost_weight * total_cost
 
         # 如果当前路径目标函数更小，则更新最优路径
@@ -109,10 +114,13 @@ def time_cost_gnn(sub_time_matrix, sub_cost_matrix, cost_weight, epochs, lr=0.01
             best_cost = total_cost
             best_path = path
 
-        # 损失函数：目标函数作为损失
-        loss = torch.tensor(total_cost_time, dtype=torch.float32, requires_grad=True)
+        # 添加正则化项，保证时间和成本的反向关系
+        reg_loss = torch.abs(total_time - total_cost)  # 计算正则化损失
 
-        loss.backward()
+        # 使用clone().detach()来避免丢失梯度信息，并确保参与梯度计算
+        total_loss = (total_cost_time + reg_loss).clone().detach().requires_grad_(True)  # 目标函数 + 正则化损失
+
+        total_loss.backward()
         optimizer.step()
 
         # 动态调整温度
