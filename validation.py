@@ -1,3 +1,4 @@
+""" 利用穷举法验证路径是否最短 """
 import itertools
 
 from tqdm import tqdm  # 导入tqdm

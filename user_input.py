@@ -1,4 +1,4 @@
-# 设置可视化界面
+""" 设置可视化界面 """
 import threading
 import tkinter as tk
 from tkinter import messagebox

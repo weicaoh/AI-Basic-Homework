@@ -1,4 +1,4 @@
-# 利用图神经网络解决TSP问题
+""" 两种GNN神经网络接口 """
 import torch.nn as nn
 import torch.optim as optim
 from torch_geometric.nn import GCNConv

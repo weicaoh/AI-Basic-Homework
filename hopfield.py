@@ -1,4 +1,4 @@
-import torch
+""" Hopfiled神经网络接口 """
 import torch.nn as nn
 
 from modeling import *

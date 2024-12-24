@@ -1,3 +1,5 @@
+""" 处理原始数据，为神经网络模型提供先验知识 """
+
 # 将旅游景点的邻接矩阵保存为numpy数组,作为其他文件调用时的数据源
 import numpy as np
 import pandas as pd
