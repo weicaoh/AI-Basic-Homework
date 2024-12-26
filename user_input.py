@@ -1,4 +1,6 @@
-""" 设置可视化界面 """
+"""
+Function：设置可视化界面
+"""
 import threading
 import tkinter as tk
 from tkinter import messagebox
@@ -9,7 +11,7 @@ from hopfield import *
 from validation import *
 
 
-class TSPApp:
+class Attraction_TSP:
     def __init__(self, root):
         self.root = root
         self.root.title("南京市旅游景点选择")
@@ -19,7 +21,7 @@ class TSPApp:
 
         # 用于存储用户选择的景点
         self.selected_attractions = []
-        self.first_selected = None  # 用来记录第一次点击的景点
+        self.first_selected = None  # 用来记录第一次点击的景点，这里以第一次点击的景点作为路线中的起点
 
         # 创建路径规划、时间规划的选择按钮
         self.instructions = tk.Label(root, text="规划目标选择：", font=("System", 10))
@@ -196,10 +198,10 @@ class TSPApp:
             # 创建并启动一个后台线程来执行GNN和Hopfield计算
             threading.Thread(target=self.distance_run_both_models, args=(sub_adj_matrix, selected_indices)).start()
 
-            # """注意:这里的验证部分仅用于实验,不对用户开放;在进行实验时,将下面的取消注释"""
+            """ 注意:这里的验证部分仅用于实验,不对用户开放;在进行实验时,将下面的取消注释 """
             # # 额外的后台线程，利用穷举法执行路径规划验证，结果不对用户界面显示
             # threading.Thread(target=self.verify_tsp_solution, args=(sub_adj_matrix, selected_indices)).start()
-
+            """ 上面为测试代码,开启以用于测试 """
 
         # 时间规划调用算法求解
         elif self.time_cost_planning_button['relief'] == 'sunken':

@@ -1,4 +1,6 @@
-""" 两种GNN神经网络接口 """
+"""
+Function：两种GNN神经网络接口
+"""
 import torch.nn as nn
 import torch.optim as optim
 from torch_geometric.nn import GCNConv
@@ -114,6 +116,7 @@ def time_cost_gnn(sub_time_matrix, sub_cost_matrix, cost_weight, epochs, lr=0.01
             best_cost = total_cost
             best_path = path
 
+        """ 注意：这里在添加正则化项约束考虑后，经测试：参数改变对输出结果的影响符合直觉规律 """
         # 添加正则化项，保证时间和成本的反向关系
         reg_loss = torch.abs(total_time - total_cost)  # 计算正则化损失
 

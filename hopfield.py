@@ -1,4 +1,6 @@
-""" Hopfiled神经网络接口 """
+"""
+Function：Hopfiled神经网络接口
+"""
 import torch.nn as nn
 
 from modeling import *
@@ -13,9 +15,7 @@ class HopfieldTSP(nn.Module):
         self.w = self.init_weights()  # 初始化权重
 
     def init_weights(self):
-        """
-        初始化Hopfield网络的权重矩阵。
-        """
+        """ 初始化Hopfield网络的权重矩阵 """
         w = torch.zeros((self.n_cities, self.n_cities))
 
         # 构造能量函数中的第一项：路径长度
@@ -31,10 +31,7 @@ class HopfieldTSP(nn.Module):
         return w
 
     def forward(self, x):
-        """
-        在Hopfield网络中进行能量最小化的迭代更新。
-        x：输入为初始状态
-        """
+        """ 在Hopfield网络中进行能量最小化的迭代更新 """
         x = x.float()  # 确保输入为浮点类型，以便与权重矩阵类型匹配
         for _ in range(1000):  # 增加迭代次数，确保收敛
             x_new = torch.sign(torch.matmul(self.w, x))
@@ -42,10 +39,7 @@ class HopfieldTSP(nn.Module):
         return x
 
     def distance_hopfield(self):
-        """
-        使用Hopfield神经网络解决TSP问题。
-        返回最优路径和路径长度。
-        """
+        """ 使用Hopfield神经网络解决TSP问题，返回最优路径和路径长度 """
         # 初始状态（随机生成，表示城市访问的初始状态）
         x = torch.randint(0, 2, (self.n_cities,)) * 2 - 1  # 随机初始化，-1和1之间的值
 
